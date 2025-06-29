@@ -9,3 +9,5 @@ __pycache__/
 # Env files
 .env
 
+# Session files
+flask_session
