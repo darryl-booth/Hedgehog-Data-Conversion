@@ -26,18 +26,25 @@ def _read_latest_sql_file():
 
 def get_table_columns(table_name: str):
     text = _read_latest_sql_file()
-    # regex to capture CREATE TABLE statement
-    pattern = rf"CREATE TABLE \[dbo\]\.\[{re.escape(table_name)}\]\((.*?)\)\s*CONSTRAINT"
-    match = re.search(pattern, text, re.S | re.IGNORECASE)
-    if not match:
+    lines = text.splitlines()
+
+    start_re = re.compile(rf"^CREATE TABLE \[dbo\]\.\[{re.escape(table_name)}\]\(", re.IGNORECASE)
+    start_idx = None
+    for i, line in enumerate(lines):
+        if start_re.search(line):
+            start_idx = i + 1
+            break
+
+    if start_idx is None:
         raise SchemaError(f'Table {table_name} not found in schema')
-    body = match.group(1)
+
     columns = []
-    for line in body.splitlines():
-        line = line.strip().rstrip(',')
-        if not line or line.upper().startswith('CONSTRAINT'):
-            continue
-        m = re.match(r"\[(?P<name>[^\]]+)\]\s+(?P<type>\w+(?:\([^\)]*\))?)", line)
+    for line in lines[start_idx:]:
+        stripped = line.strip().rstrip(',')
+        if not stripped or stripped.upper().startswith('CONSTRAINT'):
+            break
+        m = re.match(r"\[(?P<name>[^\]]+)\]\s+(?P<type>\w+(?:\([^\)]*\))?)", stripped)
         if m:
             columns.append({'field': m.group('name'), 'type': m.group('type')})
+
     return columns
