@@ -5,8 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Hedgehog Data Conversion Utility</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-    <script src="https://unpkg.com/htmx.org@1.9.9"></script>
+    <link href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css" rel="stylesheet">
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+    <script src="https://unpkg.com/htmx.org@1.9.9"></script>
 </head>
 <body>
 <div class="container-fluid">
@@ -24,18 +27,50 @@
                 </ul>
                 <h5 class="ps-3">Core</h5>
                 <ul class="nav flex-column">
-                    <li class="nav-item"><a class="nav-link" href="#">Site</a></li>
-                    <li class="nav-item"><a class="nav-link" href="#">Facility</a></li>
-                    <li class="nav-item"><a class="nav-link" href="#">Permit</a></li>
-                    <li class="nav-item"><a class="nav-link" href="#">Account</a></li>
+                    <li class="nav-item"><a class="nav-link" href="#" onclick="loadSchema('Site')">Site</a></li>
+                    <li class="nav-item"><a class="nav-link" href="#" onclick="loadSchema('Facility')">Facility</a></li>
+                    <li class="nav-item"><a class="nav-link" href="#" onclick="loadSchema('Permit')">Permit</a></li>
+                    <li class="nav-item"><a class="nav-link" href="#" onclick="loadSchema('Account')">Account</a></li>
                 </ul>
             </div>
         </nav>
         <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4">
             <h1 class="mt-4">Hedgehog Data Conversion Utility</h1>
-            <!-- Future features will appear here -->
+            <table id="schemaTable" class="display w-100">
+                <thead>
+                    <tr>
+                        <th>Fieldname</th>
+                        <th>Data Type</th>
+                        <th>Source</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+</table>
         </main>
     </div>
 </div>
+<script>
+function loadSchema(name) {
+    fetch('/schema/' + name)
+        .then(r => r.json())
+        .then(data => {
+            if (data.error) {
+                alert(data.error);
+                return;
+            }
+            var table = $('#schemaTable');
+            if ($.fn.dataTable.isDataTable(table)) {
+                table.DataTable().clear().destroy();
+            }
+            table.find('tbody').empty();
+            data.forEach(function(row){
+                table.find('tbody').append('<tr><td>'+row.field+'</td><td>'+row.type+'</td><td></td></tr>');
+            });
+            table.DataTable({
+                autoWidth: true
+            });
+        });
+}
+</script>
 </body>
 </html>
