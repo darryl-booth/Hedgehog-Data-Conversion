@@ -14,4 +14,4 @@ def client():
 def test_index(client):
     response = client.get('/')
     assert response.status_code == 200
-    assert b"Hello World" in response.data
+    assert b"Hedgehog Data Conversion Utility" in response.data
